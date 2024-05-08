@@ -58,7 +58,10 @@ def setup_cfg(args):
     cfg.SOLVER.MAX_ITER = 400000 // 4000  # Ensure this division results in a reasonable number of iterations
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 4  # Set the number of classes for your dataset
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
+<<<<<<< HEAD
     #cfg.MODEL.DEVICE = "cpu"
+=======
+>>>>>>> f8aa0c34f85e4c09b65e3780bb679ddabb3b651f
     cfg.MODEL.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"  # Automatically select device
 
     # Output directory should be set elsewhere according to your workflow

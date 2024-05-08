@@ -89,9 +89,14 @@ def export_model(cfg):
     try:
         # 打印模型权重路径并执行模型导出脚本
         print(cfg.MODEL.WEIGHTS)
+<<<<<<< HEAD
         os.system("python ./tools/deploy/export_model.py "
                   "--config-file ./configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml "
                   "--output ./model_cpu --export-method tracing --format torchscript "
+=======
+        os.system("python ./tools/deploy/export_model.py --config-file ./configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml "
+                  "--output ./output --export-method tracing --format torchscript "
+>>>>>>> f8aa0c34f85e4c09b65e3780bb679ddabb3b651f
                   "MODEL.WEIGHTS ./output/model_final.pth  MODEL.DEVICE cpu")
     except Exception as e:
         print(f"Error during model export: {e}")
