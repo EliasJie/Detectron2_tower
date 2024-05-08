@@ -16,10 +16,7 @@ pip3 config set global.index-url https://mirror.baidu.com/pypi/simple
 ## 3.  torch==1.10.0 CUDA 11.1
 pip install torch==1.10.0+cu111 torchvision==0.11.0+cu111 torchaudio==0.10.0 -f https://download.pytorch.org/whl/torch_stable.html
 
-## 4. cd detectorn2目录
-python -m pip install -e.
-
-## 5. requirements.txt
+## 4. requirements.txt
 pip install -r requirements.txt
 
 requirements.txt 包括：
@@ -41,3 +38,8 @@ matplotlib~=3.7.5
 termcolor~=2.4.0
 cloudpickle~=3.0.0
 protobuf~=3.19.0
+
+## 5. cd detectorn2目录
+python -m pip install -e.
+
+
