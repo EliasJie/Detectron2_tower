@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # Copyright (c) Facebook, Inc. and its affiliates.
+
 import argparse
 import os
 from typing import Dict, List, Tuple
@@ -19,7 +20,6 @@ from detectron2.export import (
 )
 from detectron2.modeling import GeneralizedRCNN, RetinaNet, build_model
 from detectron2.modeling.postprocessing import detector_postprocess
-# from detectron2.projects.point_rend import add_pointrend_config
 from detectron2.structures import Boxes
 from detectron2.utils.env import TORCH_VERSION
 from detectron2.utils.file_io import PathManager
@@ -29,14 +29,23 @@ from detectron2 import model_zoo
 from detectron2.data.catalog import DatasetCatalog
 from detectron2.data import MetadataCatalog
 
+
 def setup_cfg(args):
     """
-    Sets up the Detectron2 configuration for training on custom COCO datasets.
-    """
-    # Initialize configuration
-    cfg = get_cfg()
+    设置并返回配置。
 
-    # Register datasets
+    参数:
+    - args: 包含配置文件路径和额外选项的参数对象。
+
+    返回:
+    - cfg: 配置对象，准备进行模型训练或测试。
+    """
+    cfg = get_cfg()
+    cfg.DATALOADER.NUM_WORKERS = 0
+    cfg.merge_from_file(args.config_file)  # 从文件加载配置
+    cfg.merge_from_list(args.opts)  # 从命令行参数加载额外配置
+
+    # 注册训练和验证数据集
     register_coco_instances('self_coco_train', {},
                             './my_coco_dataset/data_dataset_coco_train/annotations.json',
                             './my_coco_dataset/data_dataset_coco_train')
@@ -44,28 +53,30 @@ def setup_cfg(args):
                             './my_coco_dataset/data_dataset_coco_val/annotations.json',
                             './my_coco_dataset/data_dataset_coco_val')
 
-    # Load base configuration from model zoo
-    base_config_path = model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
-    cfg.merge_from_file(base_config_path)
+    # 获取数据集元数据
+    coco_val_metadata = MetadataCatalog.get("self_coco_val")
+    dataset_dicts = DatasetCatalog.get("self_coco_val")
+    coco_train_metadata = MetadataCatalog.get("self_coco_train")
+    dataset_dicts1 = DatasetCatalog.get("self_coco_train")
 
-    # Adjust configurations
+    # 设置训练和测试的数据集
     cfg.DATASETS.TRAIN = ("self_coco_train",)
-    cfg.DATASETS.TEST = ("self_coco_val",)
-    cfg.DATALOADER.NUM_WORKERS = 0  # Consider using a positive number for multi-threaded data loading
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")  # For initialization
+    cfg.DATASETS.TEST = ()
+
+    # 配置模型参数和训练细节
+    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
     cfg.SOLVER.IMS_PER_BATCH = 2
     cfg.SOLVER.BASE_LR = 0.00025
-    cfg.SOLVER.MAX_ITER = 400000 // 4000  # Ensure this division results in a reasonable number of iterations
-    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 4  # Set the number of classes for your dataset
+    cfg.SOLVER.MAX_ITER = 400000 // 4000
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 4
+    cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_final.pth")
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
-    #cfg.MODEL.DEVICE = "cpu"
-    cfg.MODEL.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"  # Automatically select device
+    cfg.DATASETS.TEST = ("self_coco_val",)
+    cfg.MODEL.DEVICE = 'cpu'
 
-    # Output directory should be set elsewhere according to your workflow
-    # cfg.OUTPUT_DIR is typically set outside this function based on your experiment setup
+    cfg.freeze()  # 冻结配置，防止之后的修改
 
     return cfg
-
 
 
 def export_caffe2_tracing(cfg, torch_model, inputs):
